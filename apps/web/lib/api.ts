@@ -110,8 +110,3 @@ export async function getAuthConfig(): Promise<AuthConfig> {
   const fallback: AuthConfig = { github: false, demo: true, store: 'memory' };
   return (await serverGet<AuthConfig>('/auth/config')) ?? fallback;
 }
-
-export async function apiHealthy(): Promise<boolean> {
-  const result = await serverGet<{ ok: boolean }>('/health');
-  return Boolean(result?.ok);
-}

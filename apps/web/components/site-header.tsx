@@ -9,10 +9,16 @@ import { apiFetch } from '@/lib/client';
 import { Icon } from './ui/icon';
 import { Avatar, buttonClass } from './ui/primitives';
 
-const navItems = [
-  { href: '/feed', label: 'Feed', icon: 'compass' as const },
-  { href: '/feed?type=opportunity', label: 'Opportunities', icon: 'gitPullRequest' as const },
-  { href: '/projects', label: 'Projects', icon: 'boxes' as const },
+const navItems: {
+  href: string;
+  label: string;
+  icon: 'compass' | 'gitPullRequest' | 'boxes';
+  /** Query-only shortcuts never own the active state — their page does. */
+  filterOnly?: boolean;
+}[] = [
+  { href: '/feed', label: 'Feed', icon: 'compass' },
+  { href: '/feed?type=opportunity', label: 'Opportunities', icon: 'gitPullRequest', filterOnly: true },
+  { href: '/projects', label: 'Projects', icon: 'boxes' },
 ];
 
 export function SiteHeader({ user }: { user: PublicUser | null }) {
@@ -56,9 +62,9 @@ export function SiteHeader({ user }: { user: PublicUser | null }) {
     router.refresh();
   }
 
-  const isActive = (href: string) => {
-    const base = href.split('?')[0];
-    if (base === '/feed') return pathname === '/feed';
+  const isActive = (item: (typeof navItems)[number]) => {
+    if (item.filterOnly) return false;
+    const base = item.href.split('?')[0];
     return pathname === base || pathname.startsWith(`${base}/`);
   };
 
@@ -81,7 +87,7 @@ export function SiteHeader({ user }: { user: PublicUser | null }) {
               href={item.href}
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition',
-                isActive(item.href)
+                isActive(item)
                   ? 'bg-white/[0.09] text-white'
                   : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-100',
               )}

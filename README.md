@@ -27,8 +27,8 @@ Built as a monorepo: **NestJS** API + **Next.js** app + **Neon Postgres**, deplo
 
 The app is designed to boot with **zero configuration**:
 
-- No `DATABASE_URL` → the API uses an in-memory store seeded with realistic content (13 members, 14
-  posts, 5 projects, 20 replies). Data resets on restart.
+- No `DATABASE_URL` → the API uses an in-memory store seeded with realistic content (12 members plus a demo
+  account, 14 posts, 5 projects, 20 replies). Data resets on restart.
 - No `GITHUB_CLIENT_ID` → a clearly labelled **demo sign-in** is offered instead of the OAuth button.
 - Set both, and the same build runs against Neon Postgres with real GitHub sign-in.
 
