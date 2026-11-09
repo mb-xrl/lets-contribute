@@ -8,10 +8,11 @@
  * single Express instance across invocations.
  *
  * The require is kept at module scope on purpose: Vercel's dependency tracer
- * follows static `require` calls to decide which files ship with the function,
- * so `dist/` is included in the deployment bundle.
+ * follows static `require` calls to decide which files ship with the function.
+ * `npm run build` copies dist/ to api/dist/ so this path stays inside the
+ * packaged function directory.
  */
-const { createExpressApp } = require('../dist/bootstrap.js');
+const { createExpressApp } = require('./dist/bootstrap.js');
 
 let appPromise = null;
 
