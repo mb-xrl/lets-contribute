@@ -2,6 +2,7 @@
   "name": "@lets-contribute/api",
   "version": "1.0.0",
   "private": true,
+  "main": "api/index.js",
   "scripts": {
     "dev": "nest start --watch",
     "build": "tsc -p ../../packages/shared/tsconfig.json && nest build && node scripts/copy-dist.mjs",
