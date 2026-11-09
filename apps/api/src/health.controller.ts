@@ -8,9 +8,11 @@ export class HealthController {
 
   @Get('health')
   health() {
+    const status = this.store.status();
     return {
-      ok: true,
-      store: this.store.kind,
+      ok: status.ready,
+      store: status.kind,
+      database: status.detail,
       github: githubConfigured,
       demoAuth: demoAuthEnabled,
       time: new Date().toISOString(),

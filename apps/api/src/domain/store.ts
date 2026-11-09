@@ -75,8 +75,18 @@ export type StoredProject = {
 
 export type CreatePostInput = PostInput;
 
+export type StoreStatus = {
+  kind: 'postgres' | 'memory';
+  ready: boolean;
+  detail: string;
+};
+
 export interface Store {
   readonly kind: 'postgres' | 'memory';
+
+  /** Creates the schema if it is missing. Safe to call on every cold start. */
+  migrate(): Promise<void>;
+  status(): StoreStatus;
 
   // users
   upsertGitHubUser(profile: GitHubProfile): Promise<StoredUser>;

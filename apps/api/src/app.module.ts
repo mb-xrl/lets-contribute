@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthController } from './auth/auth.controller';
 import { SessionGuard } from './auth/guards';
@@ -32,11 +32,20 @@ import { UsersController } from './users/users.controller';
     ProjectsService,
     {
       // Neon when DATABASE_URL is present, in-memory otherwise (dev/preview).
+      // migrate() is idempotent, so a fresh Neon database bootstraps itself on
+      // the first cold start instead of needing a manual SQL step.
       provide: STORE,
       useFactory: async (): Promise<Store> => {
+        const logger = new Logger('Store');
         const store: Store = usingPostgres ? new PgStore() : new MemoryStore();
-        if (store.kind === 'memory') {
+        try {
+          await store.migrate();
           await store.seedIfEmpty();
+          logger.log(`${store.kind}: ${store.status().detail}`);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          logger.error(`Store initialisation failed (${store.kind}): ${message}`);
+          logger.warn('Serving requests anyway — /api/health reports the failure detail.');
         }
         return store;
       },

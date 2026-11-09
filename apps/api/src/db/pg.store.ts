@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
 import { neon } from '@neondatabase/serverless';
 import { and, eq, sql, type SQL } from 'drizzle-orm';
@@ -101,10 +103,57 @@ export class PgStore implements Store {
   readonly kind = 'postgres' as const;
   private readonly logger = new Logger('PgStore');
   private readonly db: NeonHttpDatabase<Record<string, never>>;
+  private ready = false;
+  private detail = 'not initialised';
+  private schemaPromise: Promise<void> | null = null;
 
   constructor() {
     if (!config.databaseUrl) throw new Error('DATABASE_URL is required for PgStore');
     this.db = drizzle({ client: neon(config.databaseUrl) });
+  }
+
+  /**
+   * Applies src/db/schema.sql (copied into dist/ as an asset at build time).
+   * Every statement is idempotent, so this doubles as the "first deploy on a
+   * fresh Neon database" bootstrap. Cached per instance.
+   */
+  migrate(): Promise<void> {
+    if (!this.schemaPromise) {
+      this.schemaPromise = this.applySchema().catch((error: unknown) => {
+        this.schemaPromise = null;
+        this.ready = false;
+        const message = error instanceof Error ? error.message : String(error);
+        this.detail = message.split('\n')[0].slice(0, 160);
+        throw error;
+      });
+    }
+    return this.schemaPromise;
+  }
+
+  private async applySchema(): Promise<void> {
+    const ddl = readFileSync(resolve(__dirname, 'schema.sql'), 'utf8');
+    const statements = ddl
+      .split(';')
+      .map((statement) =>
+        statement
+          .split('\n')
+          .filter((line) => !line.trim().startsWith('--'))
+          .join('\n')
+          .trim(),
+      )
+      .filter((statement) => statement.length > 0);
+
+    for (const statement of statements) {
+      await this.rows(sql.raw(statement));
+    }
+
+    this.ready = true;
+    this.detail = `schema verified · ${statements.length} statements`;
+    this.logger.log(`Neon schema ready (${statements.length} statements)`);
+  }
+
+  status() {
+    return { kind: this.kind, ready: this.ready, detail: this.detail };
   }
 
   /** Normalises the two shapes `db.execute` can return across drivers. */
@@ -266,6 +315,7 @@ export class PgStore implements Store {
     );
     if (voteRows.length) await this.db.insert(votes).values(voteRows);
 
+    this.detail = `${seed.posts.length} posts · ${seed.projects.length} projects · ${seed.users.length} members (neon)`;
     this.logger.log('Seed complete');
     return { seeded: true };
   }

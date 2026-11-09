@@ -52,6 +52,16 @@ export class MemoryStore implements Store {
   private posts = new Map<string, StoredPost>();
   private comments = new Map<string, StoredComment>();
   private votes = new Map<string, Set<string>>();
+  private ready = true;
+  private detail = 'seeded in-memory store';
+
+  async migrate(): Promise<void> {
+    // Nothing to do: the in-memory store creates its own structures.
+  }
+
+  status() {
+    return { kind: this.kind, ready: this.ready, detail: this.detail };
+  }
 
   private author(id: string): Author {
     const user = this.users.get(id);
@@ -175,6 +185,7 @@ export class MemoryStore implements Store {
       this.comments.set(comment.id, { ...comment });
     }
 
+    this.detail = `${this.posts.size} posts · ${this.projects.size} projects · ${this.users.size} members (in-memory)`;
     this.logger.log(
       `Seeded ${this.users.size} members, ${this.posts.size} posts, ${this.projects.size} projects`,
     );
