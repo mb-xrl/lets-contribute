@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "functions": {
     "api/index.js": {
-      "includeFiles": ["api/dist/**", "dist/**", "api/node_modules/**"],
+      "includeFiles": "{dist/**,api/dist/**,api/node_modules/**}",
       "memory": 1024,
       "maxDuration": 30
     }
