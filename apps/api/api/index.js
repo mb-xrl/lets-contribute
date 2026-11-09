@@ -27,8 +27,12 @@ module.exports = async function handler(req, res) {
     app(req, res);
   } catch (error) {
     console.error('[api] failed to bootstrap NestJS', error);
+    // Surface a short reason so a deployment can be diagnosed without log
+    // access. Full stack traces stay in the platform logs.
+    const reason = String((error && error.message) || error || 'unknown').split('\n')[0].slice(0, 300);
     res.statusCode = 500;
     res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ error: 'api_bootstrap_failed' }));
+    res.setHeader('cache-control', 'no-store');
+    res.end(JSON.stringify({ error: 'api_bootstrap_failed', reason }));
   }
 };
