@@ -1,0 +1,28 @@
+{
+  "name": "lets-contribute",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Let's Contribute — a glassmorphic home for open-source opportunities, ideas and project discussions. NestJS + Next.js + Neon, deployed on Vercel.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @lets-contribute/api",
+    "dev:web": "npm run dev --workspace @lets-contribute/web",
+    "build": "npm run build --workspace @lets-contribute/api && npm run build --workspace @lets-contribute/web",
+    "build:api": "npm run build --workspace @lets-contribute/api",
+    "build:web": "npm run build --workspace @lets-contribute/web",
+    "typecheck": "npm run typecheck --workspace @lets-contribute/api && npm run typecheck --workspace @lets-contribute/web",
+    "db:setup": "npm run db:setup --workspace @lets-contribute/api",
+    "start:api": "npm run start --workspace @lets-contribute/api",
+    "start:web": "npm run start --workspace @lets-contribute/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
